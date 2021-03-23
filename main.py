@@ -1,4 +1,5 @@
 import requests, json
+import base64
 import discord
 from time import sleep
 
@@ -26,7 +27,8 @@ if not db["channelId"]:
 # Discord Channel ID here. (int)
 channelId = db["channelId"]
 # Discord Bot Token
-token = db["token"]
+token = base64.b64decode(db["token"]).decode()
+
 # API params
 params = {
     "format": "json",
