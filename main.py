@@ -1,6 +1,7 @@
 import requests, json
 import base64
 import discord
+import datetime
 from time import sleep
 
 print("\n\nPlayStation5 Stock Notification")
@@ -24,11 +25,15 @@ if not db["channelId"]:
         json.dump(db ,f, indent=4)
     print("初期設定が完了しました.\n")
 
+if "y" == input("プログラム稼働中にログを出力させますか y/n>"):
+    logging = True
+else:
+    logging = False
+
 # Discord Channel ID here. (int)
 channelId = db["channelId"]
 # Discord Bot Token
 token = base64.b64decode(db["token"]).decode()
-
 # API params
 params = {
     "format": "json",
@@ -64,6 +69,9 @@ async def detector():
     while True:
         try:
             res_json = await rakuten_api()
+            if(logging):
+                now = datetime.datetime.now()
+                print(now.strftime("%Y/%m/%d %H:%M:%S"),res_json)
             if res_json["hits"]:
                 if not productStatus or 2==productStatus:
                     await notification(res_json)
@@ -78,13 +86,8 @@ async def detector():
             open("system_log.txt", "a").write(str(e)+"\n")
             break
         except KeyboardInterrupt:
-            print("exit.")
+            print("exit. Ctrl+C")
             break
-
-@client.event
-async def on_message(msg):
-    if "/test" == msg.content:
-        await msg.channel.send("ここで発言します.")
 
 @client.event
 async def on_ready():
@@ -97,4 +100,7 @@ async def on_ready():
     await detector()
 
 if '__main__' == __name__:
-    client.run(token)
+    try:
+        client.run(token)
+    except Exception as e:
+        open("system_log.txt", "a").write(str(e)+"\n")
